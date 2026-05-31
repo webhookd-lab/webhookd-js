@@ -1,0 +1,50 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Maintains a "Release PR" that bumps the version and updates CHANGELOG.md from
+  # Conventional Commits. Merging that PR cuts a git tag + GitHub Release, which
+  # flips release_created and triggers the publish job below.
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # Publishes to npm via OIDC trusted publishing — no NPM_TOKEN. Requires the
+  # package's Trusted Publisher to be configured on npmjs.com (one-time, after
+  # the first manual publish). provenance is generated automatically.
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for OIDC
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # OIDC trusted publishing needs node 22+ / npm 11.5.1+
+          registry-url: https://registry.npmjs.org
+      - name: Update npm (OIDC requires >= 11.5.1)
+        run: npm install -g npm@latest
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      # No NODE_AUTH_TOKEN: OIDC handles auth, npm emits provenance automatically.
+      - run: npm publish

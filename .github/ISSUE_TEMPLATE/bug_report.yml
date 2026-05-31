@@ -1,0 +1,46 @@
+name: Bug report
+description: Something doesn't work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. For **security** issues do not use this form —
+        see SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: webhookd version
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Runtime / framework
+      options:
+        - Node.js
+        - Bun
+        - Deno
+        - Cloudflare Workers
+        - Next.js
+        - Express
+        - Hono
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal code. Do NOT paste real secrets or signatures.
+      render: ts
+    validations:
+      required: true

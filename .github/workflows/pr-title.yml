@@ -1,0 +1,36 @@
+name: pr-title
+
+# Enforces a Conventional Commits PR title (feat:, fix:, feat!:, …). With
+# squash-merge enabled, the PR title becomes the commit release-please reads —
+# so the title IS the "version tag" for this change. See CONTRIBUTING.md.
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Allowed types — anything else is rejected. feat/fix drive releases;
+          # the rest are no-release (docs, chores, etc).
+          types: |
+            feat
+            fix
+            perf
+            docs
+            refactor
+            test
+            build
+            ci
+            chore
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" should start with a lowercase letter.
