@@ -1,0 +1,58 @@
+{
+  "name": "webhookd",
+  "version": "0.1.0",
+  "description": "Verify webhookd webhook signatures. Stripe-compatible HMAC, zero runtime dependencies, with Next/Express/Hono adapters.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./fetch": {
+      "types": "./dist/fetch.d.ts",
+      "import": "./dist/fetch.js",
+      "require": "./dist/fetch.cjs"
+    },
+    "./express": {
+      "types": "./dist/express.d.ts",
+      "import": "./dist/express.js",
+      "require": "./dist/express.cjs"
+    },
+    "./hono": {
+      "types": "./dist/hono.d.ts",
+      "import": "./dist/hono.js",
+      "require": "./dist/hono.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "bun test",
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "webhookd",
+    "webhook",
+    "webhooks",
+    "signature",
+    "hmac",
+    "verify",
+    "verification",
+    "security"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webhookd-lab/webhookd-js.git"
+  },
+  "homepage": "https://github.com/webhookd-lab/webhookd-js#readme",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "hono": "^4.6.0",
+    "tsup": "^8.3.0",
+    "typescript": "5.9.2"
+  }
+}

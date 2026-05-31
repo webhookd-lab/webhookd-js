@@ -1,0 +1,208 @@
+{
+  "scheme": "webhookd-signature-v1",
+  "version": 1,
+  "description": "Language-neutral conformance vectors for verifying the webhookd-signature header. Each vector provides the inputs to a verify() call and the expected result. Body is either body_utf8 (decode as UTF-8) or body_base64 (decode as raw bytes); exactly one is present. now and tolerance_sec are the verification reference time and window, both in seconds. See SPEC.md.",
+  "vectors": [
+    {
+      "name": "valid_basic",
+      "description": "Correct signature, timestamp within tolerance.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"id\":\"evt_1\",\"type\":\"customer.created\"}",
+      "signature_header": "t=1700000000,v1=1078276a21dc9f8fda269ee0239be481f18700cc34a15bab2949cb7c4d57aa60",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "name": "valid_empty_body",
+      "description": "Empty body still signs and verifies.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "",
+      "signature_header": "t=1700000000,v1=546f38ea567316bfb29e09be45b8793cac05ac6ed23225b153bda4eb7151cd98",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "name": "valid_unicode_body",
+      "description": "Multi-byte UTF-8 body — HMAC is over bytes, not code points.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"msg\":\"héllo 世界 🚀\"}",
+      "signature_header": "t=1700000000,v1=57ac5a4af4ab68a021f5c62530fc537bb9ea2d7b90139cb68cf3169ee5cc9561",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "name": "valid_at_past_tolerance_edge",
+      "description": "t exactly now-tolerance is still inside the window (boundary is inclusive).",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"edge\":\"past\"}",
+      "signature_header": "t=1699999700,v1=79315a81136b44728fd5d6de2387384e6b07cf12186522b260c055d10c3a2f42",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "name": "valid_at_future_tolerance_edge",
+      "description": "t exactly now+tolerance is still inside the window.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"edge\":\"future\"}",
+      "signature_header": "t=1700000300,v1=55876872b00f5cc49bd3f8b6ed40840ec509b2845652f885b452d6efcb3572e6",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "name": "valid_custom_tolerance",
+      "description": "A wider tolerance accepts a timestamp the default would reject.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"slow\":\"clock\"}",
+      "signature_header": "t=1699999600,v1=2f268054088277ed58c74f8a7d0373833731be58a5d82afd188b402fcaabed68",
+      "now": 1700000000,
+      "tolerance_sec": 600,
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "name": "valid_binary_body",
+      "description": "Body given as raw bytes (base64) — protobuf/binary payloads must verify.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_base64": "AAEC//5/gA==",
+      "signature_header": "t=1700000000,v1=85c48a49b3f9c677bc4ea19194256f369ef638b4f716a83cefa202d81d23aa74",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "name": "invalid_wrong_secret",
+      "description": "Signature made with a different secret.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"id\":\"evt_1\"}",
+      "signature_header": "t=1700000000,v1=384bcd8225e835a1dbe0574aeaca9bc192f187342aa6fa53516c44b8f2b6309f",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": false,
+        "reason": "signature_mismatch"
+      }
+    },
+    {
+      "name": "invalid_tampered_body",
+      "description": "Body changed after signing — signature no longer matches.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"id\":\"evt_1\",\"amount\":999}",
+      "signature_header": "t=1700000000,v1=070aa377c109d39464d250f71e8018b0bf3e31fc3a338fa6961a2642a3ebb3c6",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": false,
+        "reason": "signature_mismatch"
+      }
+    },
+    {
+      "name": "invalid_timestamp_too_old",
+      "description": "t is older than now-tolerance — replay defense.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"old\":true}",
+      "signature_header": "t=1699999699,v1=d8a8b114c5077ded935183e2cead29cae944da5d5e1d11c49cd5c281e00e0067",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": false,
+        "reason": "timestamp_too_old"
+      }
+    },
+    {
+      "name": "invalid_timestamp_in_future",
+      "description": "t is newer than now+tolerance — clock-skew / forged future stamp.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"future\":true}",
+      "signature_header": "t=1700000301,v1=9be20e9345225a02f79251f9f0980ca4421e8d773c9709cf22fe83cfddafb893",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": false,
+        "reason": "timestamp_in_future"
+      }
+    },
+    {
+      "name": "invalid_malformed_missing_v1",
+      "description": "Header has the timestamp part but no v1 part.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"x\":1}",
+      "signature_header": "t=1700000000,",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": false,
+        "reason": "malformed_signature"
+      }
+    },
+    {
+      "name": "invalid_malformed_missing_t",
+      "description": "Header has only the v1 part — no timestamp.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"x\":1}",
+      "signature_header": "v1=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": false,
+        "reason": "malformed_signature"
+      }
+    },
+    {
+      "name": "invalid_malformed_extra_parts",
+      "description": "Header has more than the two expected comma-separated parts.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"x\":1}",
+      "signature_header": "t=1700000000,v1=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,x=1",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": false,
+        "reason": "malformed_signature"
+      }
+    },
+    {
+      "name": "invalid_malformed_nonhex_v1",
+      "description": "v1 value contains non-hex characters.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"x\":1}",
+      "signature_header": "t=1700000000,v1=zzzz",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": false,
+        "reason": "malformed_signature"
+      }
+    },
+    {
+      "name": "invalid_malformed_empty_header",
+      "description": "Empty signature header.",
+      "secret": "whsec_out_5f3a9c1e8b7d2a06",
+      "body_utf8": "{\"x\":1}",
+      "signature_header": "",
+      "now": 1700000000,
+      "tolerance_sec": 300,
+      "expected": {
+        "valid": false,
+        "reason": "malformed_signature"
+      }
+    }
+  ]
+}
