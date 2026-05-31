@@ -23,7 +23,15 @@ function read(headers: HeadersInput, name: string): string | null {
   if (typeof (headers as Headers).get === "function") {
     return (headers as Headers).get(name);
   }
-  const v = (headers as Record<string, string | string[] | undefined>)[name];
+  // HTTP header names are case-insensitive. Node lowercases inbound keys, but a
+  // caller may hand us a plain bag with mixed-case keys — match `name` (already
+  // lowercase) against a lowercased key so we don't miss the header.
+  const bag = headers as Record<string, string | string[] | undefined>;
+  const direct = bag[name];
+  const v =
+    direct !== undefined
+      ? direct
+      : bag[Object.keys(bag).find((k) => k.toLowerCase() === name) ?? ""];
   if (Array.isArray(v)) return v[0] ?? null;
   return v ?? null;
 }
