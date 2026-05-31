@@ -4,6 +4,7 @@
   "description": "Verify webhookd webhook signatures. Stripe-compatible HMAC, zero runtime dependencies, with Next/Express/Hono adapters.",
   "license": "MIT",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "sideEffects": false,
   "files": [
     "dist"
